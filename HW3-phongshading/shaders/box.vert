@@ -1,32 +1,28 @@
 #version 300 es
-precision mediump float;
-precision mediump int;
 
-in vec4 vPosition;
-in vec3 vNormal;
-in vec2 vTexCoord;
-
+//uniform所用顶点公用的数据 ,IN variable
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat4 u_ProjectionMatrix;
 uniform mat4 u_LightSpaceMatrix;
 
-out vec3 oNormal;
-out vec3 vFragPos;
-out vec2 oTexCoord;
-out vec4 vFragPosLightSpace;
-out vec3 vReflectionDir;  // 新增反射方向输出
+//in每顶点各用的属性，IN variable
+in vec4 vPosition;   //顶点位置        	
+in vec4 vNormal;     //为作光照计算，从JS传递过来的顶点属性参数：顶点法向量				
+in vec2 vTexCoord;
 
-uniform vec3 viewPos;
+out vec2 TexCoord;
+out vec3 FragPos;
+out vec3 Normal;
+out vec4 FragPosLightSpace;
 
-void main() {
-    gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix * vPosition;
-    vFragPos = vec3(u_ModelMatrix * vPosition);
-    oNormal = mat3(transpose(inverse(u_ModelMatrix))) * vNormal;
-    oTexCoord = vTexCoord;
-    vFragPosLightSpace = u_LightSpaceMatrix * vec4(vFragPos, 1.0);
+void main() { 
+    gl_Position=u_ProjectionMatrix*u_ViewMatrix*u_ModelMatrix*vPosition;
+
+    FragPos = (u_ModelMatrix * vPosition).xyz;
+    Normal = transpose(inverse(mat3(u_ModelMatrix))) * vNormal.xyz;
     
-    // 计算反射方向（用于镜面效果）
-    vec3 viewDir = normalize(vFragPos - viewPos);
-    vReflectionDir = reflect(viewDir, normalize(vNormal));
+    TexCoord = vTexCoord;
+
+    FragPosLightSpace = u_LightSpaceMatrix * vec4(FragPos, 1.0);
 }
